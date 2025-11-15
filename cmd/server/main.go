@@ -46,20 +46,21 @@ func main() {
 	webserver := webserver.NewWebServer(configs.WebServerPort)
 	webOrderHandler := NewWebOrderHandler(db, eventDispatcher)
 	webserver.AddHandler("/order", webOrderHandler.Create)
+	webserver.AddHandler("/listorders", webOrderHandler.ListOrders)
 	fmt.Println("Starting web server on port", configs.WebServerPort)
-	go webserver.Start()
+	webserver.Start()
 
 	grpcServer := grpc.NewServer()
 	orderService := service.NewOrderService(*createOrderUseCase, *listOrderUseCase)
 	pb.RegisterOrderServiceServer(grpcServer, orderService)
-	go reflection.Register(grpcServer)
+	reflection.Register(grpcServer)
 
 	fmt.Println("Starting gRPC server on port", configs.GRPCServerPort)
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", configs.GRPCServerPort))
 	if err != nil {
 		panic(err)
 	}
-	grpcServer.Serve(lis)
+	go grpcServer.Serve(lis)
 }
 
 func getRabbitMQChannel() *amqp.Channel {
