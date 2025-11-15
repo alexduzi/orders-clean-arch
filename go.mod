@@ -3,6 +3,7 @@ module github.com/alexduzi/orderscleanarch
 go 1.25.1
 
 require (
+	github.com/go-chi/chi/v5 v5.2.3
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/google/wire v0.7.0
 	github.com/mattn/go-sqlite3 v1.14.32
