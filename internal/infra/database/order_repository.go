@@ -34,3 +34,16 @@ func (r *OrderRepository) GetTotal() (int, error) {
 	}
 	return total, nil
 }
+
+func (r *OrderRepository) ListOrders() ([]entity.Order, error) {
+	rows, err := r.Db.Query("SELECT * FROM ORDERS")
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+
+	}
+
+	return nil, nil
+}
