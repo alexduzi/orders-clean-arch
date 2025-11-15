@@ -15,3 +15,6 @@ WHERE ID = ?;
 
 -- name: DeleteOrder :exec
 DELETE FROM orders WHERE ID = ?;
+
+-- name: GetTotal :one
+Select count(*) from orders;

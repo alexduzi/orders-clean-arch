@@ -1,34 +1,40 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 
+	queries "github.com/alexduzi/orderscleanarch/internal/db"
 	"github.com/alexduzi/orderscleanarch/internal/entity"
 )
 
 type OrderRepository struct {
-	Db *sql.DB
+	Query *queries.Queries
 }
 
 func NewOrderRepository(db *sql.DB) *OrderRepository {
-	return &OrderRepository{Db: db}
+	return &OrderRepository{
+		Query: queries.New(db),
+	}
 }
 
 func (r *OrderRepository) Save(order *entity.Order) error {
-	stmt, err := r.Db.Prepare("INSERT INTO orders (id, price, tax, final_price) VALUES (?, ?, ?, ?)")
+	err := r.Query.CreateOrder(context.Background(), queries.CreateOrderParams{
+		ID:         order.ID,
+		Price:      order.Price,
+		Tax:        order.Tax,
+		FinalPrice: order.FinalPrice,
+	})
+
 	if err != nil {
 		return err
 	}
-	_, err = stmt.Exec(order.ID, order.Price, order.Tax, order.FinalPrice)
-	if err != nil {
-		return err
-	}
+
 	return nil
 }
 
-func (r *OrderRepository) GetTotal() (int, error) {
-	var total int
-	err := r.Db.QueryRow("Select count(*) from orders").Scan(&total)
+func (r *OrderRepository) GetTotal() (int64, error) {
+	total, err := r.Query.GetTotal(context.Background())
 	if err != nil {
 		return 0, err
 	}
@@ -36,14 +42,21 @@ func (r *OrderRepository) GetTotal() (int, error) {
 }
 
 func (r *OrderRepository) ListOrders() ([]entity.Order, error) {
-	rows, err := r.Db.Query("SELECT * FROM ORDERS")
+	result, err := r.Query.ListOrders(context.Background())
 	if err != nil {
 		return nil, err
 	}
 
-	for rows.Next() {
+	orders := make([]entity.Order, 0, len(result))
 
+	for _, res := range result {
+		orders = append(orders, entity.Order{
+			ID:         res.ID,
+			Price:      res.Price,
+			Tax:        res.Tax,
+			FinalPrice: res.FinalPrice,
+		})
 	}
 
-	return nil, nil
+	return orders, nil
 }
