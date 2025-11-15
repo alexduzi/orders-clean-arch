@@ -10,6 +10,7 @@ import (
 	"github.com/alexduzi/orderscleanarch/internal/event/handler"
 	"github.com/alexduzi/orderscleanarch/internal/infra/grpc/pb"
 	"github.com/alexduzi/orderscleanarch/internal/infra/grpc/service"
+	"github.com/alexduzi/orderscleanarch/internal/infra/web/webserver"
 	"github.com/alexduzi/orderscleanarch/pkg/events"
 	_ "github.com/go-sql-driver/mysql"
 	"google.golang.org/grpc"
@@ -42,16 +43,16 @@ func main() {
 	createOrderUseCase := NewCreateOrderUseCase(db, eventDispatcher)
 	listOrderUseCase := NewListOrderUseCase(db)
 
-	// webserver := webserver.NewWebServer(configs.WebServerPort)
-	// webOrderHandler := NewWebOrderHandler(db, eventDispatcher)
-	// webserver.AddHandler("/order", webOrderHandler.Create)
-	// fmt.Println("Starting web server on port", configs.WebServerPort)
-	// go webserver.Start()
+	webserver := webserver.NewWebServer(configs.WebServerPort)
+	webOrderHandler := NewWebOrderHandler(db, eventDispatcher)
+	webserver.AddHandler("/order", webOrderHandler.Create)
+	fmt.Println("Starting web server on port", configs.WebServerPort)
+	go webserver.Start()
 
 	grpcServer := grpc.NewServer()
 	orderService := service.NewOrderService(*createOrderUseCase, *listOrderUseCase)
 	pb.RegisterOrderServiceServer(grpcServer, orderService)
-	reflection.Register(grpcServer)
+	go reflection.Register(grpcServer)
 
 	fmt.Println("Starting gRPC server on port", configs.GRPCServerPort)
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", configs.GRPCServerPort))

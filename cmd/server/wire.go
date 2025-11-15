@@ -9,6 +9,7 @@ import (
 	"github.com/alexduzi/orderscleanarch/internal/entity"
 	"github.com/alexduzi/orderscleanarch/internal/event"
 	"github.com/alexduzi/orderscleanarch/internal/infra/database"
+	"github.com/alexduzi/orderscleanarch/internal/infra/web"
 	"github.com/alexduzi/orderscleanarch/internal/usecase"
 	"github.com/alexduzi/orderscleanarch/pkg/events"
 
@@ -47,4 +48,13 @@ func NewListOrderUseCase(db *sql.DB) *usecase.ListOrderUseCase {
 		usecase.NewListOrderUseCase,
 	)
 	return &usecase.ListOrderUseCase{}
+}
+
+func NewWebOrderHandler(db *sql.DB, eventDispatcher events.EventDispatcherInterface) *web.WebOrderHandler {
+	wire.Build(
+		setOrderRepositoryDependency,
+		setOrderCreatedEvent,
+		web.NewWebOrderHandler,
+	)
+	return &web.WebOrderHandler{}
 }

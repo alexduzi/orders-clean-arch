@@ -11,6 +11,7 @@ import (
 	"github.com/alexduzi/orderscleanarch/internal/entity"
 	"github.com/alexduzi/orderscleanarch/internal/event"
 	"github.com/alexduzi/orderscleanarch/internal/infra/database"
+	"github.com/alexduzi/orderscleanarch/internal/infra/web"
 	"github.com/alexduzi/orderscleanarch/internal/usecase"
 	"github.com/alexduzi/orderscleanarch/pkg/events"
 	"github.com/google/wire"
@@ -33,6 +34,13 @@ func NewListOrderUseCase(db *sql.DB) *usecase.ListOrderUseCase {
 	orderRepository := database.NewOrderRepository(db)
 	listOrderUseCase := usecase.NewListOrderUseCase(orderRepository)
 	return listOrderUseCase
+}
+
+func NewWebOrderHandler(db *sql.DB, eventDispatcher events.EventDispatcherInterface) *web.WebOrderHandler {
+	orderRepository := database.NewOrderRepository(db)
+	orderCreated := event.NewOrderCreated()
+	webOrderHandler := web.NewWebOrderHandler(eventDispatcher, orderRepository, orderCreated)
+	return webOrderHandler
 }
 
 // wire.go:
