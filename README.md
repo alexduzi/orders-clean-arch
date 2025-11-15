@@ -217,7 +217,7 @@ DB_PASSWORD=root
 DB_NAME=orders
 
 # Server Ports
-WEB_SERVER_PORT=8000
+WEB_SERVER_PORT=:8000
 GRPC_SERVER_PORT=50051
 GRAPHQL_SERVER_PORT=8080
 
@@ -496,7 +496,7 @@ make generate
 ### Porta já em uso
 ```bash
 # Altere as portas no arquivo .env
-WEB_SERVER_PORT=8001
+WEB_SERVER_PORT=:8001
 GRPC_SERVER_PORT=50052
 GRAPHQL_SERVER_PORT=8081
 ```
