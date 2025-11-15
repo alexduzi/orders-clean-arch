@@ -17,7 +17,6 @@ resolver:
   layout: follow-schema
   dir: internal/infra/graph
   package: graph
-  filename: resolver.go
 
 # Map GraphQL types to your domain entities
 models:
