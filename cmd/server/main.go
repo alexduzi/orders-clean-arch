@@ -7,12 +7,15 @@ import (
 	"net"
 
 	"github.com/alexduzi/orderscleanarch/configs"
+	"github.com/alexduzi/orderscleanarch/internal/event/handler"
 	"github.com/alexduzi/orderscleanarch/internal/infra/grpc/pb"
 	"github.com/alexduzi/orderscleanarch/internal/infra/grpc/service"
 	"github.com/alexduzi/orderscleanarch/pkg/events"
 	_ "github.com/go-sql-driver/mysql"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+
+	"github.com/streadway/amqp"
 )
 
 func main() {
@@ -30,10 +33,20 @@ func main() {
 	}
 	defer db.Close()
 
+	rabbitMQChannel := getRabbitMQChannel()
 	eventDispatcher := events.NewEventDispatcher()
+	eventDispatcher.Register("OrderCreated", &handler.OrderCreatedHandler{
+		RabbitMQChannel: rabbitMQChannel,
+	})
 
 	createOrderUseCase := NewCreateOrderUseCase(db, eventDispatcher)
 	listOrderUseCase := NewListOrderUseCase(db)
+
+	// webserver := webserver.NewWebServer(configs.WebServerPort)
+	// webOrderHandler := NewWebOrderHandler(db, eventDispatcher)
+	// webserver.AddHandler("/order", webOrderHandler.Create)
+	// fmt.Println("Starting web server on port", configs.WebServerPort)
+	// go webserver.Start()
 
 	grpcServer := grpc.NewServer()
 	orderService := service.NewOrderService(*createOrderUseCase, *listOrderUseCase)
@@ -46,4 +59,16 @@ func main() {
 		panic(err)
 	}
 	grpcServer.Serve(lis)
+}
+
+func getRabbitMQChannel() *amqp.Channel {
+	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	if err != nil {
+		panic(err)
+	}
+	ch, err := conn.Channel()
+	if err != nil {
+		panic(err)
+	}
+	return ch
 }

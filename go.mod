@@ -7,6 +7,7 @@ require (
 	github.com/google/wire v0.7.0
 	github.com/mattn/go-sqlite3 v1.14.32
 	github.com/spf13/viper v1.21.0
+	github.com/streadway/amqp v1.1.0
 	github.com/stretchr/testify v1.11.1
 	google.golang.org/grpc v1.76.0
 	google.golang.org/protobuf v1.36.10

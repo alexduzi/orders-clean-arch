@@ -1,30 +1,39 @@
-package event
+package handler
 
-import "time"
+import (
+	"encoding/json"
+	"fmt"
+	"sync"
 
-type OrderCreated struct {
-	Name    string
-	Payload interface{}
+	"github.com/alexduzi/orderscleanarch/pkg/events"
+	"github.com/streadway/amqp"
+)
+
+type OrderCreatedHandler struct {
+	RabbitMQChannel *amqp.Channel
 }
 
-func NewOrderCreated() *OrderCreated {
-	return &OrderCreated{
-		Name: "OrderCreated",
+func NewOrderCreatedHandler(rabbitMQChannel *amqp.Channel) *OrderCreatedHandler {
+	return &OrderCreatedHandler{
+		RabbitMQChannel: rabbitMQChannel,
 	}
 }
 
-func (e *OrderCreated) GetName() string {
-	return e.Name
-}
+func (h *OrderCreatedHandler) Handle(event events.EventInterface, wg *sync.WaitGroup) {
+	defer wg.Done()
+	fmt.Printf("Order created: %v", event.GetPayload())
+	jsonOutput, _ := json.Marshal(event.GetPayload())
 
-func (e *OrderCreated) GetPayload() interface{} {
-	return e.Payload
-}
+	msgRabbitmq := amqp.Publishing{
+		ContentType: "application/json",
+		Body:        jsonOutput,
+	}
 
-func (e *OrderCreated) SetPayload(payload interface{}) {
-	e.Payload = payload
-}
-
-func (e *OrderCreated) GetDateTime() time.Time {
-	return time.Now()
+	h.RabbitMQChannel.Publish(
+		"amq.direct", // exchange
+		"",           // key name
+		false,        // mandatory
+		false,        // immediate
+		msgRabbitmq,  // message to publish
+	)
 }
